@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Farmasi - Sistem Informasi Klinik</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header / Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Sistem Informasi Klinik</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="login.html" class="btn-logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-container">
+            <h1>Form Resep Farmasi</h1>
+            <p class="subtitle">Input resep dan dispensing obat pasien</p>
+
+            <form method="post" action="#" class="medical-form">
+                <div class="form-section">
+                    <h2>Informasi Resep</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nomor Resep <span class="required">*</span></label>
+                            <input type="text" name="no_resep" required placeholder="Contoh: RSP2025001">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nomor Rekam Medis <span class="required">*</span></label>
+                            <input type="text" name="no_rm" required placeholder="Contoh: RM2025001">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tanggal Resep <span class="required">*</span></label>
+                            <input type="date" name="tanggal" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nama Dokter <span class="required">*</span></label>
+                            <input type="text" name="dokter" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nama Apoteker <span class="required">*</span></label>
+                        <input type="text" name="apoteker" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="obat-header">
+                        <h2>Daftar Obat</h2>
+                        <button type="button" id="tambahObat" class="btn btn-success">+ Tambah Obat</button>
+                    </div>
+
+                    <div id="obatContainer">
+                        <div class="obat-item">
+                            <div class="obat-title">
+                                <span>Obat 1</span>
+                                <button type="button" class="hapus-obat" style="display:none;">Hapus</button>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Nama Obat <span class="required">*</span></label>
+                                <input type="text" name="nama_obat[]" required>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Jumlah <span class="required">*</span></label>
+                                    <input type="number" name="jumlah[]" required min="1">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Harga (Rp)</label>
+                                    <input type="number" name="harga[]" min="0">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Dosis dan Aturan Pakai <span class="required">*</span></label>
+                                <textarea name="dosis[]" required rows="2" placeholder="Contoh: 3x1 tablet sehari setelah makan"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Catatan</h2>
+                    <div class="form-group">
+                        <label>Catatan Apoteker</label>
+                        <textarea name="catatan" rows="3" placeholder="Catatan tambahan tentang resep ini..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Proses Resep</button>
+                    <button type="reset" class="btn btn-secondary">Reset Form</button>
+                    <a href="dashboard.html" class="btn btn-light">Kembali</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <p>&copy; 2025 Sistem Informasi Klinik. All rights reserved.</p>
+    </footer>
+
+    <script>
+        let obatCount = 1;
+
+        document.getElementById('tambahObat').addEventListener('click', function() {
+            obatCount++;
+            const container = document.getElementById('obatContainer');
+            const newObat = document.createElement('div');
+            newObat.className = 'obat-item';
+            newObat.innerHTML = `
+                <div class="obat-title">
+                    <span>Obat ${obatCount}</span>
+                    <button type="button" class="hapus-obat">Hapus</button>
+                </div>
+                <div class="form-group">
+                    <label>Nama Obat <span class="required">*</span></label>
+                    <input type="text" name="nama_obat[]" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Jumlah <span class="required">*</span></label>
+                        <input type="number" name="jumlah[]" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Harga (Rp)</label>
+                        <input type="number" name="harga[]" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Dosis dan Aturan Pakai <span class="required">*</span></label>
+                    <textarea name="dosis[]" required rows="2" placeholder="Contoh: 3x1 tablet sehari setelah makan"></textarea>
+                </div>
+            `;
+            container.appendChild(newObat);
+            updateObatNumbers();
+        });
+
+        document.getElementById('obatContainer').addEventListener('click', function(e) {
+            if (e.target.classList.contains('hapus-obat')) {
+                e.target.closest('.obat-item').remove();
+                updateObatNumbers();
+            }
+        });
+
+        function updateObatNumbers() {
+            const items = document.querySelectorAll('.obat-item');
+            obatCount = items.length;
+            items.forEach((item, index) => {
+                item.querySelector('.obat-title span').textContent = `Obat ${index + 1}`;
+                const hapusBtn = item.querySelector('.hapus-obat');
+                hapusBtn.style.display = items.length > 1 ? 'inline-block' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

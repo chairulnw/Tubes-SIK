@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistem Informasi Klinik</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Modern Minimalist Dashboard Styles */
+        body {
+            background: #f8f9fa;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header Section */
+        .dashboard-header {
+            margin-bottom: 40px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .user-role {
+            font-size: 13px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .dashboard-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .card-description {
+            font-size: 15px;
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .card-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #667eea;
+        }
+
+        .card-action::after {
+            content: '→';
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover .card-action::after {
+            transform: translateX(4px);
+        }
+
+        /* Admin Section */
+        .admin-section {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .admin-section h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 24px;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 24px 16px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 24px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header / Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Sistem Informasi Klinik</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="login.html" class="btn-logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>Dashboard</h1>
+            <div class="user-info">
+                <div class="user-avatar">DA</div>
+                <div class="user-details">
+                    <span class="user-name">Dr. Ahmad Suryanto</span>
+                    <span class="user-role">Dokter</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example error message -->
+        <!-- <div class="alert alert-error">
+            Anda tidak memiliki akses ke halaman tersebut.
+        </div> -->
+
+        <!-- Main Menu Cards -->
+        <div class="cards-grid">
+            <a href="pendaftaran.html" class="dashboard-card">
+                <h3 class="card-title">Pendaftaran Pasien</h3>
+                <p class="card-description">Daftar pasien baru atau pasien lama untuk pemeriksaan</p>
+                <span class="card-action">Buka Halaman</span>
+            </a>
+
+            <a href="pemeriksaan.html" class="dashboard-card">
+                <h3 class="card-title">Pemeriksaan</h3>
+                <p class="card-description">Input data pemeriksaan dan diagnosis pasien</p>
+                <span class="card-action">Buka Halaman</span>
+            </a>
+
+            <a href="farmasi.html" class="dashboard-card">
+                <h3 class="card-title">Farmasi</h3>
+                <p class="card-description">Kelola resep dan dispensing obat pasien</p>
+                <span class="card-action">Buka Halaman</span>
+            </a>
+
+            <a href="pembayaran.html" class="dashboard-card">
+                <h3 class="card-title">Pembayaran</h3>
+                <p class="card-description">Proses pembayaran dan invoice pasien</p>
+                <span class="card-action">Buka Halaman</span>
+            </a>
+
+            <a href="data-medis.html" class="dashboard-card">
+                <h3 class="card-title">Data Medis Saya</h3>
+                <p class="card-description">Lihat riwayat pemeriksaan dan data wearable</p>
+                <span class="card-action">Buka Halaman</span>
+            </a>
+        </div>
+
+        <!-- Admin Section -->
+        <div class="admin-section">
+            <h2>Administrator</h2>
+            <div class="cards-grid">
+                <a href="kelola-user.html" class="dashboard-card">
+                    <h3 class="card-title">Kelola User</h3>
+                    <p class="card-description">Manajemen user dan hak akses sistem</p>
+                    <span class="card-action">Buka Halaman</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <p>&copy; 2025 Sistem Informasi Klinik. All rights reserved.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Pendaftaran Pasien - Sistem Informasi Klinik</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header / Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Sistem Informasi Klinik</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="login.html" class="btn-logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-container">
+            <h1>Form Pendaftaran Pasien</h1>
+            <p class="subtitle">Daftarkan pasien baru atau pasien lama untuk pemeriksaan</p>
+
+            <form method="post" action="#" class="medical-form">
+                <div class="form-section">
+                    <h2>Data Rekam Medis</h2>
+                    <div class="form-group">
+                        <label>Nomor Rekam Medis</label>
+                        <input type="text" name="no_rm" placeholder="Contoh: RM2025001">
+                        <small>Kosongkan jika pasien baru, sistem akan generate otomatis</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Data Pribadi Pasien</h2>
+                    <div class="form-group">
+                        <label>NIK <span class="required">*</span></label>
+                        <input type="text" name="nik" required maxlength="20">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nama Lengkap <span class="required">*</span></label>
+                        <input type="text" name="nama" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tanggal Lahir <span class="required">*</span></label>
+                            <input type="date" name="tanggal_lahir" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Jenis Kelamin <span class="required">*</span></label>
+                            <div class="radio-group horizontal">
+                                <label><input type="radio" name="jenis_kelamin" value="L" required> Laki-laki</label>
+                                <label><input type="radio" name="jenis_kelamin" value="P" required> Perempuan</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Alamat <span class="required">*</span></label>
+                        <textarea name="alamat" required rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nomor Telepon <span class="required">*</span></label>
+                        <input type="tel" name="telepon" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Keluhan</h2>
+                    <div class="form-group">
+                        <label>Keluhan Pasien <span class="required">*</span></label>
+                        <textarea name="keluhan" required rows="4" placeholder="Deskripsikan keluhan pasien..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Daftar Pasien</button>
+                    <button type="reset" class="btn btn-secondary">Reset Form</button>
+                    <a href="dashboard.html" class="btn btn-light">Kembali</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <p>&copy; 2025 Sistem Informasi Klinik. All rights reserved.</p>
+    </footer>
+</body>
+</html>

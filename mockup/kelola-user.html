@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola User - Sistem Informasi Klinik</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Header / Navigation -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Sistem Informasi Klinik</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="login.html" class="btn-logout">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="user-management-container">
+            <div class="page-header">
+                <h1>Kelola User</h1>
+                <button class="btn btn-primary" id="addUserBtn">Tambah User Baru</button>
+            </div>
+            <p class="subtitle">Manajemen user dan hak akses sistem</p>
+
+            <!-- Filter dan Search -->
+            <div class="filter-section">
+                <div class="search-box">
+                    <input type="text" placeholder="Cari berdasarkan nama atau username..." id="searchInput">
+                </div>
+                <div class="filter-role">
+                    <select id="filterRole">
+                        <option value="">Semua Role</option>
+                        <option value="admin">Admin</option>
+                        <option value="dokter">Dokter</option>
+                        <option value="pendaftaran">Pendaftaran</option>
+                        <option value="farmasi">Farmasi</option>
+                        <option value="kasir">Kasir</option>
+                        <option value="pasien">Pasien</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabel User -->
+            <div class="table-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Nama Lengkap</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Terakhir Login</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>admin</td>
+                            <td>Administrator System</td>
+                            <td>admin@klinik.com</td>
+                            <td><span class="badge badge-admin">Admin</span></td>
+                            <td><span class="status-badge status-active">Aktif</span></td>
+                            <td>3 Des 2025, 10:30</td>
+                            <td class="action-cell">
+                                <button class="btn-action btn-edit" title="Edit">Edit</button>
+                                <button class="btn-action btn-delete" title="Hapus">Hapus</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>dokter1</td>
+                            <td>Dr. Ahmad Suryanto</td>
+                            <td>ahmad@klinik.com</td>
+                            <td><span class="badge badge-dokter">Dokter</span></td>
+                            <td><span class="status-badge status-active">Aktif</span></td>
+                            <td>2 Des 2025, 15:45</td>
+                            <td class="action-cell">
+                                <button class="btn-action btn-edit" title="Edit">Edit</button>
+                                <button class="btn-action btn-delete" title="Hapus">Hapus</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>dokter2</td>
+                            <td>Dr. Siti Nurhaliza</td>
+                            <td>siti@klinik.com</td>
+                            <td><span class="badge badge-dokter">Dokter</span></td>
+                            <td><span class="status-badge status-active">Aktif</span></td>
+                            <td>1 Des 2025, 09:20</td>
+                            <td class="action-cell">
+                                <button class="btn-action btn-edit" title="Edit">Edit</button>
+                                <button class="btn-action btn-delete" title="Hapus">Hapus</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>pendaftaran1</td>
+                            <td>Budi Santoso</td>
+                            <td>budi@klinik.com</td>
+                            <td><span class="badge badge-pendaftaran">Pendaftaran</span></td>
+                            <td><span class="status-badge status-active">Aktif</span></td>
+                            <td>3 Des 2025, 08:00</td>
+                            <td class="action-cell">
+                                <button class="btn-action btn-edit" title="Edit">Edit</button>
+                                <button class="btn-action btn-delete" title="Hapus">Hapus</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>farmasi1</td>
+                            <td>Apt. Dewi Lestari</td>
+                            <td>dewi@klinik.com</td>
+                            <td><span class="badge badge-farmasi">Farmasi</span></td>
+                            <td><span class="status-badge status-active">Aktif</span></td>
+                            <td>2 Des 2025, 14:30</td>
+                            <td class="action-cell">
+                                <button class="btn-action btn-edit" title="Edit">Edit</button>
+                                <button class="btn-action btn-delete" title="Hapus">Hapus</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>kasir1</td>
+                            <td>Rina Wijaya</td>
+                            <td>rina@klinik.com</td>
+                            <td><span class="badge badge-kasir">Kasir</span></td>
+                            <td><span class="status-badge status-active">Aktif</span></td>
+                            <td>3 Des 2025, 07:45</td>
+                            <td class="action-cell">
+                                <button class="btn-action btn-edit" title="Edit">Edit</button>
+                                <button class="btn-action btn-delete" title="Hapus">Hapus</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>pasien001</td>
+                            <td>Andi Wijaya</td>
+                            <td>andi@email.com</td>
+                            <td><span class="badge badge-pasien">Pasien</span></td>
+                            <td><span class="status-badge status-inactive">Nonaktif</span></td>
+                            <td>15 Nov 2025, 10:00</td>
+                            <td class="action-cell">
+                                <button class="btn-action btn-edit" title="Edit">Edit</button>
+                                <button class="btn-action btn-delete" title="Hapus">Hapus</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="btn btn-secondary" disabled>Previous</button>
+                <span class="page-info">Halaman 1 dari 1</span>
+                <button class="btn btn-secondary" disabled>Next</button>
+            </div>
+
+            <div class="action-buttons">
+                <a href="dashboard.html" class="btn btn-light">Kembali ke Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <p>&copy; 2025 Sistem Informasi Klinik. All rights reserved.</p>
+    </footer>
+
+    <!-- Modal Tambah/Edit User (Hidden by default) -->
+    <div id="userModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tambah User Baru</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <div class="form-group">
+                        <label>Username <span class="required">*</span></label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password <span class="required">*</span></label>
+                        <input type="password" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama Lengkap <span class="required">*</span></label>
+                        <input type="text" name="nama_lengkap" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Role <span class="required">*</span></label>
+                        <select name="role" required>
+                            <option value="">-- Pilih Role --</option>
+                            <option value="admin">Admin</option>
+                            <option value="dokter">Dokter</option>
+                            <option value="pendaftaran">Pendaftaran</option>
+                            <option value="farmasi">Farmasi</option>
+                            <option value="kasir">Kasir</option>
+                            <option value="pasien">Pasien</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status <span class="required">*</span></label>
+                        <select name="status" required>
+                            <option value="aktif">Aktif</option>
+                            <option value="nonaktif">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="button" class="btn btn-secondary close-modal">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .user-management-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .page-header h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .search-box {
+            flex: 1;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .filter-role select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .user-table thead {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .user-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .user-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .badge-admin { background: #e74c3c; color: white; }
+        .badge-dokter { background: #3498db; color: white; }
+        .badge-pendaftaran { background: #27ae60; color: white; }
+        .badge-farmasi { background: #e67e22; color: white; }
+        .badge-kasir { background: #9b59b6; color: white; }
+        .badge-pasien { background: #95a5a6; color: white; }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #2980b9;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .page-info {
+            color: #666;
+        }
+
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .close-modal {
+            cursor: pointer;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .close-modal:hover {
+            color: #ddd;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .filter-section {
+                flex-direction: column;
+            }
+
+            .filter-role select {
+                width: 100%;
+            }
+
+            .table-container {
+                overflow-x: scroll;
+            }
+
+            .action-cell {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        // Modal functionality
+        const modal = document.getElementById('userModal');
+        const addUserBtn = document.getElementById('addUserBtn');
+        const closeButtons = document.querySelectorAll('.close-modal');
+
+        addUserBtn.addEventListener('click', function() {
+            modal.style.display = 'flex';
+        });
+
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        });
+
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Form submission (mockup - no actual processing)
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('User berhasil ditambahkan! (Mockup - data tidak tersimpan)');
+            modal.style.display = 'none';
+            this.reset();
+        });
+
+        // Delete confirmation
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
+                    alert('User berhasil dihapus! (Mockup - data tidak terhapus)');
+                }
+            });
+        });
+
+        // Edit functionality
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', function() {
+                modal.style.display = 'flex';
+                document.querySelector('.modal-header h2').textContent = 'Edit User';
+            });
+        });
+    </script>
+</body>
+</html>
