@@ -94,67 +94,15 @@ function getCurrentUser() {
  * Destroy session dan logout
  */
 function logout() {
-    // Hapus session dari database jika ada
-    if (isLoggedIn()) {
-        $conn = getDBConnection();
-        $session_id = session_id();
-
-        $stmt = $conn->prepare("DELETE FROM sessions WHERE session_id = ?");
-        $stmt->bind_param("s", $session_id);
-        $stmt->execute();
-        $stmt->close();
-        $conn->close();
-    }
-
     // Hapus semua session variables
     session_unset();
 
     // Destroy session
     session_destroy();
 
-    // Redirect ke login (gunakan path relatif)
-    header("Location: login.php");
+    // Redirect ke login
+    header("Location: login.php?logout=1");
     exit();
-}
-
-/**
- * Update last activity time di session database
- */
-function updateSessionActivity() {
-    if (!isLoggedIn()) {
-        return;
-    }
-
-    $conn = getDBConnection();
-    $session_id = session_id();
-
-    $stmt = $conn->prepare("UPDATE sessions SET last_activity = NOW() WHERE session_id = ?");
-    $stmt->bind_param("s", $session_id);
-    $stmt->execute();
-    $stmt->close();
-    $conn->close();
-}
-
-/**
- * Cek dan hapus session yang sudah expired (lebih dari 24 jam tidak aktif)
- */
-function cleanExpiredSessions() {
-    $conn = getDBConnection();
-
-    $stmt = $conn->prepare("DELETE FROM sessions WHERE last_activity < DATE_SUB(NOW(), INTERVAL 24 HOUR)");
-    $stmt->execute();
-    $stmt->close();
-    $conn->close();
-}
-
-// Update activity untuk setiap page load (opsional)
-if (isLoggedIn() && rand(1, 100) === 1) { // 1% chance untuk update (efisiensi)
-    updateSessionActivity();
-}
-
-// Clean expired sessions (jalankan secara random untuk efisiensi)
-if (rand(1, 100) === 1) { // 1% chance
-    cleanExpiredSessions();
 }
 
 ?>

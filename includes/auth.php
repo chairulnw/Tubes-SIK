@@ -13,14 +13,13 @@ require_once __DIR__ . '/config.php';
  * @param string $role Role user
  * @param string $nama_lengkap Nama lengkap user
  * @param string|null $email Email user (opsional)
- * @param string|null $no_rm Nomor rekam medis (untuk role pasien)
  * @return array Array dengan key 'success' dan 'message'
  */
-function registerUser($username, $password, $role, $nama_lengkap, $email = null, $no_rm = null) {
+function registerUser($username, $password, $role, $nama_lengkap, $email = null) {
     $conn = getDBConnection();
 
     // Cek apakah username sudah digunakan
-    $stmt = $conn->prepare("SELECT id_user FROM users WHERE username = ?");
+    $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -36,8 +35,8 @@ function registerUser($username, $password, $role, $nama_lengkap, $email = null,
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
     // Insert user baru
-    $stmt = $conn->prepare("INSERT INTO users (username, password, role, nama_lengkap, email, no_rm) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssss", $username, $hashed_password, $role, $nama_lengkap, $email, $no_rm);
+    $stmt = $conn->prepare("INSERT INTO users (username, password, role, nama_lengkap, email) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $username, $hashed_password, $role, $nama_lengkap, $email);
 
     if ($stmt->execute()) {
         $user_id = $conn->insert_id;
@@ -62,7 +61,7 @@ function loginUser($username, $password) {
     $conn = getDBConnection();
 
     // Ambil data user dari database
-    $stmt = $conn->prepare("SELECT id_user, username, password, role, nama_lengkap, email, no_rm, is_active FROM users WHERE username = ?");
+    $stmt = $conn->prepare("SELECT id, username, password, role, nama_lengkap, email, status FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -77,7 +76,7 @@ function loginUser($username, $password) {
     $stmt->close();
 
     // Cek apakah akun aktif
-    if (!$user['is_active']) {
+    if ($user['status'] !== 'aktif') {
         $conn->close();
         return ['success' => false, 'message' => 'Akun tidak aktif'];
     }
@@ -88,39 +87,29 @@ function loginUser($username, $password) {
         return ['success' => false, 'message' => 'Password salah'];
     }
 
-    // Update last login
-    $stmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id_user = ?");
-    $stmt->bind_param("i", $user['id_user']);
-    $stmt->execute();
-    $stmt->close();
-
     // Buat session
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    $_SESSION['user_id'] = $user['id_user'];
+    $_SESSION['user_id'] = $user['id'];
     $_SESSION['username'] = $user['username'];
     $_SESSION['role'] = $user['role'];
     $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
     $_SESSION['email'] = $user['email'];
-    $_SESSION['no_rm'] = $user['no_rm'];
 
-    // Simpan session ke database
-    $session_id = session_id();
-    $ip_address = $_SERVER['REMOTE_ADDR'];
-    $user_agent = $_SERVER['HTTP_USER_AGENT'];
+    // Jika user adalah pasien, ambil no_rm dari tabel pasien
+    if ($user['role'] === 'pasien') {
+        $stmt = $conn->prepare("SELECT no_rm FROM pasien WHERE user_id = ?");
+        $stmt->bind_param("i", $user['id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    // Hapus session lama user ini jika ada
-    $stmt = $conn->prepare("DELETE FROM sessions WHERE id_user = ?");
-    $stmt->bind_param("i", $user['id_user']);
-    $stmt->execute();
-    $stmt->close();
-
-    // Insert session baru
-    $stmt = $conn->prepare("INSERT INTO sessions (session_id, id_user, ip_address, user_agent) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("siss", $session_id, $user['id_user'], $ip_address, $user_agent);
-    $stmt->execute();
-    $stmt->close();
+        if ($result->num_rows > 0) {
+            $pasien = $result->fetch_assoc();
+            $_SESSION['no_rm'] = $pasien['no_rm'];
+        }
+        $stmt->close();
+    }
 
     $conn->close();
 

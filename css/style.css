@@ -340,12 +340,20 @@ body {
 /* Radio buttons */
 .radio-group {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
 }
 
 .radio-group label {
     font-weight: normal;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.radio-group input[type="radio"] {
     cursor: pointer;
 }
 

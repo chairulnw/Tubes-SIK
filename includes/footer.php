@@ -1,7 +1,7 @@
     <footer class="main-footer">
         <div class="footer-container">
             <p>&copy; <?php echo date('Y'); ?> Klinik Sehat. Sistem Informasi Klinik.</p>
-            <p>Milestone 1 - Database & Authentication System</p>
+            <p>Sistem Manajemen Pasien & Rekam Medis</p>
         </div>
     </footer>
 

@@ -52,7 +52,7 @@ if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 }
 
 // Validasi role
-$valid_roles = ['pendaftaran', 'dokter', 'farmasi', 'laboratorium', 'kasir', 'pasien'];
+$valid_roles = ['admin', 'pendaftaran', 'dokter', 'farmasi', 'laboratorium', 'kasir', 'pasien'];
 if (!in_array($role, $valid_roles)) {
     $errors[] = "Role tidak valid";
 }

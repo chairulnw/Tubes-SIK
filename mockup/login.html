@@ -192,5 +192,13 @@
             }
         }
     </style>
+
+    <script>
+        // Redirect to dashboard on form submit (mockup only)
+        document.querySelector('.auth-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            window.location.href = 'dashboard.html';
+        });
+    </script>
 </body>
 </html>

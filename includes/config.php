@@ -8,7 +8,7 @@
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'SIK');
+define('DB_NAME', 'db_klinik');
 
 // Site URL - sesuaikan dengan lokasi project Anda
 // Contoh: 'http://localhost/Tubes-SIK' atau 'http://localhost:8000'

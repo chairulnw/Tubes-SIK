@@ -8,9 +8,26 @@ require_once '../includes/config.php';
 require_once '../includes/session.php';
 
 // Hanya admin dan staf pendaftaran yang bisa akses
-requireRole(['admin', 'pendaftaran']);
+if (!isLoggedIn()) {
+    header("Location: ../login.php");
+    exit();
+}
 
-$user = getCurrentUser();
+if (!in_array($_SESSION['role'], ['admin', 'pendaftaran'])) {
+    header("Location: ../dashboard.php?error=" . urlencode("Anda tidak memiliki akses ke halaman ini"));
+    exit();
+}
+
+$success = '';
+$error = '';
+
+if (isset($_GET['success'])) {
+    $success = htmlspecialchars($_GET['success']);
+}
+
+if (isset($_GET['error'])) {
+    $error = htmlspecialchars($_GET['error']);
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -27,6 +44,18 @@ $user = getCurrentUser();
         <div class="form-container">
             <h1>Form Pendaftaran Pasien</h1>
             <p class="subtitle">Daftarkan pasien baru atau pasien lama untuk pemeriksaan</p>
+
+            <?php if ($success): ?>
+                <div class="alert alert-success">
+                    <?php echo $success; ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($error): ?>
+                <div class="alert alert-error">
+                    <?php echo $error; ?>
+                </div>
+            <?php endif; ?>
 
             <form method="post" action="../handlers/pendaftaran_process.php" class="medical-form">
                 <div class="form-section">
@@ -73,6 +102,15 @@ $user = getCurrentUser();
                     <div class="form-group">
                         <label>Nomor Telepon <span class="required">*</span></label>
                         <input type="tel" name="telepon" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Link ke Akun User (Opsional)</h2>
+                    <div class="form-group">
+                        <label>Username Pasien</label>
+                        <input type="text" name="username_pasien" placeholder="Masukkan username jika pasien sudah punya akun">
+                        <small>Kosongkan jika pasien belum memiliki akun di sistem</small>
                     </div>
                 </div>
 

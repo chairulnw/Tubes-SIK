@@ -8,9 +8,18 @@ require_once '../includes/config.php';
 require_once '../includes/session.php';
 
 // Hanya admin dan dokter yang bisa akses
-requireRole(['admin', 'dokter']);
+if (!isLoggedIn()) {
+    header("Location: ../login.php");
+    exit();
+}
 
-$user = getCurrentUser();
+if (!in_array($_SESSION['role'], ['admin', 'dokter'])) {
+    header("Location: ../dashboard.php?error=" . urlencode("Anda tidak memiliki akses ke halaman ini"));
+    exit();
+}
+
+$success = isset($_GET['success']) ? htmlspecialchars($_GET['success']) : '';
+$error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -27,6 +36,14 @@ $user = getCurrentUser();
         <div class="form-container">
             <h1>Form Pemeriksaan Pasien</h1>
             <p class="subtitle">Input data pemeriksaan dan diagnosis pasien</p>
+
+            <?php if ($success): ?>
+                <div class="alert alert-success"><?php echo $success; ?></div>
+            <?php endif; ?>
+
+            <?php if ($error): ?>
+                <div class="alert alert-error"><?php echo $error; ?></div>
+            <?php endif; ?>
 
             <form method="post" action="../handlers/pemeriksaan_process.php" class="medical-form">
                 <div class="form-section">
