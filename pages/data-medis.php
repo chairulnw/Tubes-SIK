@@ -188,6 +188,58 @@ function hitungUmur($tanggal_lahir) {
                                     <div class="record-item">
                                         <strong>Terapi:</strong> <?php echo htmlspecialchars($pemeriksaan['terapi']); ?>
                                     </div>
+
+                                    <?php
+                                    // Get lab results for this pemeriksaan
+                                    $conn_lab = getDBConnection();
+                                    $stmt_lab = $conn_lab->prepare("
+                                        SELECT pl.kode_lab, pl.jenis_tes, pl.tanggal_permintaan, pl.biaya, pl.status,
+                                               hl.hasil_pemeriksaan, hl.catatan_petugas, hl.tanggal_hasil,
+                                               u.nama_lengkap as petugas_lab
+                                        FROM permintaan_lab pl
+                                        LEFT JOIN hasil_lab hl ON pl.id = hl.permintaan_lab_id
+                                        LEFT JOIN users u ON hl.petugas_lab_id = u.id
+                                        WHERE pl.pemeriksaan_id = ?
+                                        ORDER BY pl.tanggal_permintaan
+                                    ");
+                                    $stmt_lab->bind_param("i", $pemeriksaan['id']);
+                                    $stmt_lab->execute();
+                                    $result_lab = $stmt_lab->get_result();
+
+                                    if ($result_lab->num_rows > 0):
+                                    ?>
+                                    <div class="lab-section">
+                                        <strong>Hasil Laboratorium:</strong>
+                                        <?php while ($lab = $result_lab->fetch_assoc()): ?>
+                                        <div class="lab-result-box">
+                                            <div class="lab-header">
+                                                <strong><?php echo htmlspecialchars($lab['jenis_tes']); ?></strong>
+                                                <span class="lab-status lab-<?php echo $lab['status']; ?>">
+                                                    <?php echo ucfirst($lab['status']); ?>
+                                                </span>
+                                            </div>
+                                            <div class="lab-info">
+                                                <small>Kode: <?php echo $lab['kode_lab']; ?> |
+                                                Permintaan: <?php echo date('d/m/Y H:i', strtotime($lab['tanggal_permintaan'])); ?></small>
+                                            </div>
+                                            <?php if ($lab['status'] === 'selesai'): ?>
+                                            <div class="lab-result">
+                                                <p><strong>Hasil:</strong><br><?php echo nl2br(htmlspecialchars($lab['hasil_pemeriksaan'])); ?></p>
+                                                <?php if ($lab['catatan_petugas']): ?>
+                                                <p><strong>Catatan:</strong> <?php echo htmlspecialchars($lab['catatan_petugas']); ?></p>
+                                                <?php endif; ?>
+                                                <small>Diperiksa oleh: <?php echo htmlspecialchars($lab['petugas_lab']); ?>
+                                                pada <?php echo date('d/m/Y H:i', strtotime($lab['tanggal_hasil'])); ?></small>
+                                            </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php endwhile; ?>
+                                    </div>
+                                    <?php
+                                    endif;
+                                    $stmt_lab->close();
+                                    $conn_lab->close();
+                                    ?>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -524,6 +576,70 @@ function hitungUmur($tanggal_lahir) {
             border: 1px solid #bee5eb;
         }
 
+        /* Lab Results Styles */
+        .lab-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .lab-result-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .lab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .lab-status {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .lab-status.lab-pending {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .lab-status.lab-diproses {
+            background: #74b9ff;
+            color: #0984e3;
+        }
+
+        .lab-status.lab-selesai {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .lab-info {
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .lab-result {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .lab-result p {
+            margin-bottom: 10px;
+        }
+
+        .lab-result pre {
+            white-space: pre-wrap;
+            font-family: inherit;
+        }
 
         @media (max-width: 768px) {
             .info-grid {

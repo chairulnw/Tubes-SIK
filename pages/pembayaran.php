@@ -34,7 +34,8 @@ $user = getCurrentUser();
                     <div class="form-row">
                         <div class="form-group">
                             <label>Nomor Invoice <span class="required">*</span></label>
-                            <input type="text" name="no_invoice" required placeholder="Contoh: INV2025001">
+                            <input type="text" name="no_invoice" readonly value="(Auto-generate)" class="readonly-field" style="background-color: #f0f0f0; cursor: not-allowed;">
+                            <small>Nomor invoice akan digenerate otomatis oleh sistem</small>
                         </div>
 
                         <div class="form-group">
@@ -91,13 +92,13 @@ $user = getCurrentUser();
                 <div class="form-section">
                     <h2>Metode Pembayaran</h2>
                     <div class="form-group">
-                        <label>Pilih Metode Pembayaran <span class="required">*</span></label>
+                        <label style="display: block; margin-bottom: 8px;">Pilih Metode Pembayaran <span class="required">*</span></label>
                         <div class="radio-group payment-methods">
-                            <label><input type="radio" name="metode" value="tunai" required checked> 💵 Tunai</label>
-                            <label><input type="radio" name="metode" value="debit" required> 💳 Kartu Debit</label>
-                            <label><input type="radio" name="metode" value="kredit" required> 💳 Kartu Kredit</label>
-                            <label><input type="radio" name="metode" value="bpjs" required> 🏥 BPJS</label>
-                            <label><input type="radio" name="metode" value="asuransi" required> 🏢 Asuransi</label>
+                            <label><input type="radio" name="metode" value="tunai" required checked> Tunai</label>
+                            <label><input type="radio" name="metode" value="debit" required> Kartu Debit</label>
+                            <label><input type="radio" name="metode" value="kredit" required> Kartu Kredit</label>
+                            <label><input type="radio" name="metode" value="bpjs" required> BPJS</label>
+                            <label><input type="radio" name="metode" value="asuransi" required> Asuransi</label>
                         </div>
                     </div>
                 </div>

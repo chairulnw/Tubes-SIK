@@ -135,6 +135,17 @@ if (isset($_GET['error'])) {
             transform: translateX(4px);
         }
 
+        .card-icon {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 12px;
+            background: #f0f4ff;
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
         /* Admin Section */
         .admin-section {
             margin-top: 60px;
@@ -237,6 +248,14 @@ if (isset($_GET['error'])) {
                 <a href="pages/farmasi.php" class="dashboard-card">
                     <h3 class="card-title">Farmasi</h3>
                     <p class="card-description">Kelola resep dan dispensing obat pasien</p>
+                    <span class="card-action">Buka Halaman</span>
+                </a>
+            <?php endif; ?>
+
+            <?php if (in_array($_SESSION['role'], ['admin', 'laboratorium'])): ?>
+                <a href="pages/laboratorium.php" class="dashboard-card">
+                    <h3 class="card-title">Laboratorium</h3>
+                    <p class="card-description">Kelola permintaan dan hasil tes laboratorium</p>
                     <span class="card-action">Buka Halaman</span>
                 </a>
             <?php endif; ?>

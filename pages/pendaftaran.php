@@ -86,7 +86,7 @@ if (isset($_GET['error'])) {
                         </div>
 
                         <div class="form-group">
-                            <label>Jenis Kelamin <span class="required">*</span></label>
+                            <label style="display: block; margin-bottom: 8px;">Jenis Kelamin <span class="required">*</span></label>
                             <div class="radio-group">
                                 <label><input type="radio" name="jenis_kelamin" value="L" required> Laki-laki</label>
                                 <label><input type="radio" name="jenis_kelamin" value="P" required> Perempuan</label>

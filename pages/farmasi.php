@@ -1,175 +1,195 @@
 <?php
 /**
- * Form Farmasi
- * Sistem Informasi Klinik - Milestone 1
+ * Daftar Resep Farmasi
+ * Sistem Informasi Klinik
  */
 
 require_once '../includes/config.php';
 require_once '../includes/session.php';
 
-// Hanya admin dan staf farmasi yang bisa akses
-requireRole(['admin', 'farmasi']);
+// Hanya admin dan farmasi yang bisa akses
+if (!isLoggedIn()) {
+    header("Location: ../login.php");
+    exit();
+}
 
-$user = getCurrentUser();
+if (!in_array($_SESSION['role'], ['admin', 'farmasi'])) {
+    header("Location: ../dashboard.php?error=" . urlencode("Anda tidak memiliki akses ke halaman ini"));
+    exit();
+}
+
+$success = isset($_GET['success']) ? htmlspecialchars($_GET['success']) : '';
+$error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
+
+$conn = getDBConnection();
+
+// Ambil semua resep (pending, diproses, selesai)
+$stmt = $conn->prepare("
+    SELECT r.*, p.nama as nama_pasien, u.nama_lengkap as nama_dokter,
+           u2.nama_lengkap as petugas_farmasi
+    FROM resep r
+    JOIN pasien p ON r.no_rm = p.no_rm
+    JOIN users u ON r.dokter_id = u.id
+    LEFT JOIN users u2 ON r.farmasi_id = u2.id
+    ORDER BY
+        CASE r.status
+            WHEN 'pending' THEN 1
+            WHEN 'diproses' THEN 2
+            WHEN 'selesai' THEN 3
+        END,
+        r.tanggal_resep DESC
+");
+$stmt->execute();
+$result = $stmt->get_result();
+$resep_list = [];
+while ($row = $result->fetch_assoc()) {
+    $resep_list[] = $row;
+}
+$stmt->close();
+$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Farmasi - Sistem Informasi Klinik</title>
+    <title>Farmasi - Sistem Informasi Klinik</title>
     <link rel="stylesheet" href="../css/style.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            flex: 1;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        .data-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-pending {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+        .badge-diproses {
+            background: #74b9ff;
+            color: #0984e3;
+        }
+        .badge-selesai {
+            background: #55efc4;
+            color: #00b894;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+            margin-right: 5px;
+        }
+    </style>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>
 
     <div class="container">
         <div class="form-container">
-            <h1>Form Resep Farmasi</h1>
-            <p class="subtitle">Input resep dan dispensing obat pasien</p>
+            <h1>Farmasi - Daftar Resep</h1>
+            <p class="subtitle">Kelola resep dan dispensing obat pasien</p>
 
-            <form method="post" action="../handlers/farmasi_process.php" class="medical-form">
-                <div class="form-section">
-                    <h2>Informasi Resep</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nomor Resep <span class="required">*</span></label>
-                            <input type="text" name="no_resep" required placeholder="Contoh: RSP2025001">
-                        </div>
+            <?php if ($success): ?>
+                <div class="alert alert-success"><?php echo $success; ?></div>
+            <?php endif; ?>
 
-                        <div class="form-group">
-                            <label>Nomor Rekam Medis <span class="required">*</span></label>
-                            <input type="text" name="no_rm" required placeholder="Contoh: RM2025001">
-                        </div>
-                    </div>
+            <?php if ($error): ?>
+                <div class="alert alert-error"><?php echo $error; ?></div>
+            <?php endif; ?>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Tanggal Resep <span class="required">*</span></label>
-                            <input type="date" name="tanggal" required value="<?php echo date('Y-m-d'); ?>">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Nama Dokter <span class="required">*</span></label>
-                            <input type="text" name="dokter" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Nama Apoteker <span class="required">*</span></label>
-                        <input type="text" name="apoteker" required value="<?php echo htmlspecialchars($user['nama_lengkap']); ?>">
-                    </div>
+            <?php if (empty($resep_list)): ?>
+                <div class="alert alert-info">Tidak ada resep saat ini.</div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No. Resep</th>
+                                <th>No. RM</th>
+                                <th>Nama Pasien</th>
+                                <th>Dokter</th>
+                                <th>Tanggal Resep</th>
+                                <th>Catatan Dokter</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($resep_list as $resep): ?>
+                            <tr>
+                                <td><strong><?php echo htmlspecialchars($resep['no_resep']); ?></strong></td>
+                                <td><?php echo htmlspecialchars($resep['no_rm']); ?></td>
+                                <td><?php echo htmlspecialchars($resep['nama_pasien']); ?></td>
+                                <td><?php echo htmlspecialchars($resep['nama_dokter']); ?></td>
+                                <td><?php echo date('d/m/Y H:i', strtotime($resep['tanggal_resep'])); ?></td>
+                                <td style="max-width: 200px;"><?php echo nl2br(htmlspecialchars(substr($resep['catatan_resep'], 0, 50))); ?><?php echo strlen($resep['catatan_resep']) > 50 ? '...' : ''; ?></td>
+                                <td>
+                                    <span class="badge badge-<?php echo $resep['status']; ?>">
+                                        <?php echo ucfirst($resep['status']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php if ($resep['status'] === 'pending' || $resep['status'] === 'diproses'): ?>
+                                        <a href="farmasi-proses.php?id=<?php echo $resep['id']; ?>" class="btn btn-sm btn-primary">
+                                            <?php echo $resep['status'] === 'pending' ? 'Proses' : 'Lanjutkan'; ?>
+                                        </a>
+                                    <?php elseif ($resep['status'] === 'selesai'): ?>
+                                        <span style="color: #00b894; font-size: 12px;">
+                                            ✓ Selesai (Biaya: Rp <?php echo number_format($resep['biaya'], 0, ',', '.'); ?>)
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div class="form-section">
-                    <div class="obat-header">
-                        <h2>Daftar Obat</h2>
-                        <button type="button" id="tambahObat" class="btn btn-success">+ Tambah Obat</button>
-                    </div>
-
-                    <div id="obatContainer">
-                        <div class="obat-item">
-                            <div class="obat-title">
-                                <span>Obat 1</span>
-                                <button type="button" class="hapus-obat" style="display:none;">Hapus</button>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Nama Obat <span class="required">*</span></label>
-                                <input type="text" name="nama_obat[]" required>
-                            </div>
-
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Jumlah <span class="required">*</span></label>
-                                    <input type="number" name="jumlah[]" required min="1">
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Harga (Rp)</label>
-                                    <input type="number" name="harga[]" min="0">
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Dosis dan Aturan Pakai <span class="required">*</span></label>
-                                <textarea name="dosis[]" required rows="2" placeholder="Contoh: 3x1 tablet sehari setelah makan"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h2>Catatan</h2>
-                    <div class="form-group">
-                        <label>Catatan Apoteker</label>
-                        <textarea name="catatan" rows="3" placeholder="Catatan tambahan tentang resep ini..."></textarea>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Proses Resep</button>
-                    <button type="reset" class="btn btn-secondary">Reset Form</button>
-                    <a href="../dashboard.php" class="btn btn-light">Kembali</a>
-                </div>
-            </form>
+            <?php endif; ?>
         </div>
     </div>
 
     <?php include '../includes/footer.php'; ?>
 
-    <script>
-        let obatCount = 1;
-
-        document.getElementById('tambahObat').addEventListener('click', function() {
-            obatCount++;
-            const container = document.getElementById('obatContainer');
-            const newObat = document.createElement('div');
-            newObat.className = 'obat-item';
-            newObat.innerHTML = `
-                <div class="obat-title">
-                    <span>Obat ${obatCount}</span>
-                    <button type="button" class="hapus-obat">Hapus</button>
-                </div>
-                <div class="form-group">
-                    <label>Nama Obat <span class="required">*</span></label>
-                    <input type="text" name="nama_obat[]" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Jumlah <span class="required">*</span></label>
-                        <input type="number" name="jumlah[]" required min="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Harga (Rp)</label>
-                        <input type="number" name="harga[]" min="0">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Dosis dan Aturan Pakai <span class="required">*</span></label>
-                    <textarea name="dosis[]" required rows="2" placeholder="Contoh: 3x1 tablet sehari setelah makan"></textarea>
-                </div>
-            `;
-            container.appendChild(newObat);
-            updateObatNumbers();
-        });
-
-        document.getElementById('obatContainer').addEventListener('click', function(e) {
-            if (e.target.classList.contains('hapus-obat')) {
-                e.target.closest('.obat-item').remove();
-                updateObatNumbers();
-            }
-        });
-
-        function updateObatNumbers() {
-            const items = document.querySelectorAll('.obat-item');
-            obatCount = items.length;
-            items.forEach((item, index) => {
-                item.querySelector('.obat-title span').textContent = `Obat ${index + 1}`;
-                const hapusBtn = item.querySelector('.hapus-obat');
-                hapusBtn.style.display = items.length > 1 ? 'inline-block' : 'none';
-            });
+    <style>
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin: 20px 0;
         }
-    </script>
+    </style>
 </body>
 </html>
