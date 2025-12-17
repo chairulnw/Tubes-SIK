@@ -18,7 +18,7 @@
 
 // ========== KONFIGURASI WIFI ==========
 const char* WIFI_SSID = "Meli";        // Ganti dengan nama WiFi Anda
-const char* WIFI_PASSWORD = "melisaaatr"; // Ganti dengan password WiFi
+const char* WIFI_PASSWORD = "melissaaatr"; // Ganti dengan password WiFi
 const char* SERVER_URL = "http://192.168.100.11/Tubes-SIK/api/wearable_data.php"; // Fixed: single slash
 
 // ========== KONFIGURASI PASIEN ==========

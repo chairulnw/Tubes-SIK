@@ -80,6 +80,10 @@ $conn->close();
         .container {
             flex: 1;
         }
+        .form-container {
+            min-width: 900px;
+            max-width: 1400px;
+        }
     </style>
 </head>
 <body>

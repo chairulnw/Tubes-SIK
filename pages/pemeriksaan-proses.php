@@ -189,9 +189,9 @@ $usia = $sekarang->diff($lahir)->y;
                     <h2>Rujukan</h2>
 
                     <div class="form-group">
-                        <label>
+                        <label class="checkbox-label">
                             <input type="checkbox" id="butuh_lab" name="butuh_lab" value="1">
-                            Rujuk ke Laboratorium
+                            <span>Rujuk ke Laboratorium</span>
                         </label>
                     </div>
 
@@ -203,9 +203,9 @@ $usia = $sekarang->diff($lahir)->y;
                     </div>
 
                     <div class="form-group" style="margin-top: 15px;">
-                        <label>
+                        <label class="checkbox-label">
                             <input type="checkbox" id="butuh_farmasi" name="butuh_farmasi" value="1">
-                            Rujuk ke Farmasi
+                            <span>Rujuk ke Farmasi</span>
                         </label>
                     </div>
 
@@ -229,6 +229,11 @@ $usia = $sekarang->diff($lahir)->y;
     <?php include '../includes/footer.php'; ?>
 
     <style>
+        .form-container {
+            min-width: 800px;
+            max-width: 1200px;
+        }
+
         .patient-info-card {
             background: #f8f9fa;
             border: 2px solid #3498db;
@@ -280,6 +285,34 @@ $usia = $sekarang->diff($lahir)->y;
 
         .info-box strong {
             color: #0056b3;
+        }
+
+        /* Checkbox alignment */
+        .checkbox-label {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            cursor: pointer;
+            margin-bottom: 0 !important;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin: 0 !important;
+            padding: 0 !important;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .checkbox-label span {
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .form-section .form-group label.checkbox-label {
+            display: flex !important;
+            align-items: center !important;
         }
     </style>
 

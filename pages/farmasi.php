@@ -23,29 +23,43 @@ $error = isset($_GET['error']) ? htmlspecialchars($_GET['error']) : '';
 
 $conn = getDBConnection();
 
-// Ambil semua resep (pending, diproses, selesai)
-$stmt = $conn->prepare("
+// Ambil resep pending/diproses (Permintaan Masuk)
+$stmt_pending = $conn->prepare("
+    SELECT r.*, p.nama as nama_pasien, u.nama_lengkap as nama_dokter
+    FROM resep r
+    JOIN pasien p ON r.no_rm = p.no_rm
+    JOIN users u ON r.dokter_id = u.id
+    WHERE r.status IN ('pending', 'diproses')
+    ORDER BY r.tanggal_resep DESC
+");
+$stmt_pending->execute();
+$result_pending = $stmt_pending->get_result();
+$pending_resep = [];
+while ($row = $result_pending->fetch_assoc()) {
+    $pending_resep[] = $row;
+}
+$stmt_pending->close();
+
+// Ambil resep selesai (Riwayat)
+$stmt_selesai = $conn->prepare("
     SELECT r.*, p.nama as nama_pasien, u.nama_lengkap as nama_dokter,
            u2.nama_lengkap as petugas_farmasi
     FROM resep r
     JOIN pasien p ON r.no_rm = p.no_rm
     JOIN users u ON r.dokter_id = u.id
     LEFT JOIN users u2 ON r.farmasi_id = u2.id
-    ORDER BY
-        CASE r.status
-            WHEN 'pending' THEN 1
-            WHEN 'diproses' THEN 2
-            WHEN 'selesai' THEN 3
-        END,
-        r.tanggal_resep DESC
+    WHERE r.status = 'selesai'
+    ORDER BY r.tanggal_dispensing DESC
+    LIMIT 50
 ");
-$stmt->execute();
-$result = $stmt->get_result();
-$resep_list = [];
-while ($row = $result->fetch_assoc()) {
-    $resep_list[] = $row;
+$stmt_selesai->execute();
+$result_selesai = $stmt_selesai->get_result();
+$selesai_resep = [];
+while ($row = $result_selesai->fetch_assoc()) {
+    $selesai_resep[] = $row;
 }
-$stmt->close();
+$stmt_selesai->close();
+
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -128,54 +142,93 @@ $conn->close();
                 <div class="alert alert-error"><?php echo $error; ?></div>
             <?php endif; ?>
 
-            <?php if (empty($resep_list)): ?>
-                <div class="alert alert-info">Tidak ada resep saat ini.</div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>No. Resep</th>
-                                <th>No. RM</th>
-                                <th>Nama Pasien</th>
-                                <th>Dokter</th>
-                                <th>Tanggal Resep</th>
-                                <th>Catatan Dokter</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($resep_list as $resep): ?>
-                            <tr>
-                                <td><strong><?php echo htmlspecialchars($resep['no_resep']); ?></strong></td>
-                                <td><?php echo htmlspecialchars($resep['no_rm']); ?></td>
-                                <td><?php echo htmlspecialchars($resep['nama_pasien']); ?></td>
-                                <td><?php echo htmlspecialchars($resep['nama_dokter']); ?></td>
-                                <td><?php echo date('d/m/Y H:i', strtotime($resep['tanggal_resep'])); ?></td>
-                                <td style="max-width: 200px;"><?php echo nl2br(htmlspecialchars(substr($resep['catatan_resep'], 0, 50))); ?><?php echo strlen($resep['catatan_resep']) > 50 ? '...' : ''; ?></td>
-                                <td>
-                                    <span class="badge badge-<?php echo $resep['status']; ?>">
-                                        <?php echo ucfirst($resep['status']); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php if ($resep['status'] === 'pending' || $resep['status'] === 'diproses'): ?>
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('pending')">Permintaan Masuk (<?php echo count($pending_resep); ?>)</button>
+                <button class="tab-btn" onclick="switchTab('selesai')">Riwayat Selesai</button>
+            </div>
+
+            <!-- Tab Content: Pending -->
+            <div id="tab-pending" class="tab-content active">
+                <?php if (empty($pending_resep)): ?>
+                    <div class="alert alert-info">Tidak ada resep saat ini.</div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>No. Resep</th>
+                                    <th>No. RM</th>
+                                    <th>Nama Pasien</th>
+                                    <th>Dokter</th>
+                                    <th>Tanggal Resep</th>
+                                    <th>Catatan Dokter</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($pending_resep as $resep): ?>
+                                <tr>
+                                    <td><strong><?php echo htmlspecialchars($resep['no_resep']); ?></strong></td>
+                                    <td><?php echo htmlspecialchars($resep['no_rm']); ?></td>
+                                    <td><?php echo htmlspecialchars($resep['nama_pasien']); ?></td>
+                                    <td><?php echo htmlspecialchars($resep['nama_dokter']); ?></td>
+                                    <td><?php echo date('d/m/Y H:i', strtotime($resep['tanggal_resep'])); ?></td>
+                                    <td style="max-width: 200px;"><?php echo nl2br(htmlspecialchars(substr($resep['catatan_resep'], 0, 50))); ?><?php echo strlen($resep['catatan_resep']) > 50 ? '...' : ''; ?></td>
+                                    <td>
+                                        <span class="badge badge-<?php echo $resep['status']; ?>">
+                                            <?php echo ucfirst($resep['status']); ?>
+                                        </span>
+                                    </td>
+                                    <td>
                                         <a href="farmasi-proses.php?id=<?php echo $resep['id']; ?>" class="btn btn-sm btn-primary">
                                             <?php echo $resep['status'] === 'pending' ? 'Proses' : 'Lanjutkan'; ?>
                                         </a>
-                                    <?php elseif ($resep['status'] === 'selesai'): ?>
-                                        <span style="color: #00b894; font-size: 12px;">
-                                            ✓ Selesai (Biaya: Rp <?php echo number_format($resep['biaya'], 0, ',', '.'); ?>)
-                                        </span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Tab Content: Selesai -->
+            <div id="tab-selesai" class="tab-content">
+                <?php if (empty($selesai_resep)): ?>
+                    <div class="alert alert-info">Belum ada resep yang selesai.</div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>No. Resep</th>
+                                    <th>No. RM</th>
+                                    <th>Nama Pasien</th>
+                                    <th>Dokter</th>
+                                    <th>Tanggal Selesai</th>
+                                    <th>Petugas Farmasi</th>
+                                    <th>Biaya</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($selesai_resep as $resep): ?>
+                                <tr>
+                                    <td><strong><?php echo htmlspecialchars($resep['no_resep']); ?></strong></td>
+                                    <td><?php echo htmlspecialchars($resep['no_rm']); ?></td>
+                                    <td><?php echo htmlspecialchars($resep['nama_pasien']); ?></td>
+                                    <td><?php echo htmlspecialchars($resep['nama_dokter']); ?></td>
+                                    <td><?php echo date('d/m/Y H:i', strtotime($resep['tanggal_dispensing'])); ?></td>
+                                    <td><?php echo htmlspecialchars($resep['petugas_farmasi']); ?></td>
+                                    <td>Rp <?php echo number_format($resep['biaya'], 0, ',', '.'); ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 
@@ -190,6 +243,74 @@ $conn->close();
             border-radius: 6px;
             margin: 20px 0;
         }
+
+        .form-container {
+            min-width: 900px;
+            max-width: 1400px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6c757d;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .tab-btn.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+
+            // Remove active class from all buttons
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
 </body>
 </html>
