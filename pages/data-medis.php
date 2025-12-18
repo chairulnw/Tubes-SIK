@@ -66,27 +66,27 @@ try {
         }
         $stmt->close();
 
-        // Pagination untuk wearable data
+        // Pagination untuk wearable data (shared device untuk seluruh klinik)
         $wearable_per_page = 5;
         $wearable_page = isset($_GET['wpage']) ? max(1, intval($_GET['wpage'])) : 1;
         $wearable_offset = ($wearable_page - 1) * $wearable_per_page;
 
-        // Hitung total wearable data
-        $stmt_wcount = $conn->prepare("SELECT COUNT(*) as total FROM wearable_data WHERE no_rm = ?");
-        $stmt_wcount->bind_param("s", $pasien_data['no_rm']);
+        // Hitung total wearable data (dari semua pasien - 1 device untuk klinik)
+        $stmt_wcount = $conn->prepare("SELECT COUNT(*) as total FROM wearable_data");
         $stmt_wcount->execute();
         $total_wearable = $stmt_wcount->get_result()->fetch_assoc()['total'];
         $stmt_wcount->close();
         $wearable_total_pages = ceil($total_wearable / $wearable_per_page);
 
-        // Ambil data wearable dengan pagination
+        // Ambil data wearable dengan pagination (semua data dari device klinik)
         $stmt = $conn->prepare("
-            SELECT * FROM wearable_data
-            WHERE no_rm = ?
-            ORDER BY waktu_pembacaan DESC
+            SELECT w.*, p.nama as nama_pasien
+            FROM wearable_data w
+            LEFT JOIN pasien p ON w.no_rm = p.no_rm
+            ORDER BY w.waktu_pembacaan DESC
             LIMIT ? OFFSET ?
         ");
-        $stmt->bind_param("sii", $pasien_data['no_rm'], $wearable_per_page, $wearable_offset);
+        $stmt->bind_param("ii", $wearable_per_page, $wearable_offset);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
@@ -382,6 +382,8 @@ function hitungUmur($tanggal_lahir) {
                                 <thead>
                                     <tr>
                                         <th>Waktu</th>
+                                        <th>No. RM</th>
+                                        <th>Nama Pasien</th>
                                         <th>Detak Jantung</th>
                                         <th>Status</th>
                                     </tr>
@@ -390,6 +392,8 @@ function hitungUmur($tanggal_lahir) {
                                     <?php foreach ($wearable_data as $data): ?>
                                         <tr>
                                             <td><?php echo date('d M Y, H:i', strtotime($data['waktu_pembacaan'])); ?></td>
+                                            <td><strong><?php echo htmlspecialchars($data['no_rm']); ?></strong></td>
+                                            <td><?php echo htmlspecialchars($data['nama_pasien'] ?? 'Unknown'); ?></td>
                                             <td><?php echo htmlspecialchars($data['detak_jantung']); ?> bpm</td>
                                             <td>
                                                 <span class="badge-status badge-<?php echo $data['status']; ?>">
@@ -872,9 +876,14 @@ function hitungUmur($tanggal_lahir) {
     <?php if ($pasien_data && !empty($wearable_data)): ?>
     <script>
         // Configuration
-        const NO_RM = '<?php echo $pasien_data['no_rm']; ?>';
         const API_URL = '/Tubes-SIK/api/wearable_latest.php';
+        // Removed NO_RM - using shared device for entire clinic
         const UPDATE_INTERVAL = 10000; // 10 seconds
+
+        // Get current wearable page from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentWPage = parseInt(urlParams.get('wpage')) || 1;
+        let autoRefreshInterval = null;
 
         // Initialize Charts
         const ctxHR = document.getElementById('chartHeartRate').getContext('2d');
@@ -978,9 +987,15 @@ function hitungUmur($tanggal_lahir) {
         });
         */
 
-        // Function to update charts
+        // Function to update charts (all data from shared device)
         function updateCharts() {
-            fetch(`${API_URL}?no_rm=${NO_RM}&limit=20`)
+            // Only auto-refresh if on page 1
+            if (currentWPage !== 1) {
+                console.log('Auto-refresh disabled - browsing history (page ' + currentWPage + ')');
+                return;
+            }
+
+            fetch(`${API_URL}?limit=20`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.data.length > 0) {
@@ -1013,10 +1028,10 @@ function hitungUmur($tanggal_lahir) {
                         document.querySelector('#lastUpdateHR span').textContent = now;
                         // document.querySelector('#lastUpdateSpO2 span').textContent = now; // Disabled
 
-                        // Update table (optional - only first 5 rows)
+                        // Update table ONLY if on page 1 (first 5 rows)
                         updateTable(data.data.slice(0, 5));
 
-                        console.log(`[${now}] Charts updated successfully`);
+                        console.log(`[${now}] Charts updated successfully (Page 1 - Auto-refresh ON)`);
                     }
                 })
                 .catch(error => {
@@ -1042,10 +1057,13 @@ function hitungUmur($tanggal_lahir) {
 
                 const statusClass = `badge-${d.status}`;
                 const statusText = d.status.charAt(0).toUpperCase() + d.status.slice(1);
+                const namaPasien = d.nama_pasien || 'Unknown';
 
                 const row = `
                     <tr>
                         <td>${formattedDate}</td>
+                        <td><strong>${d.no_rm}</strong></td>
+                        <td>${namaPasien}</td>
                         <td>${d.detak_jantung} bpm</td>
                         <td>
                             <span class="badge-status ${statusClass}">
@@ -1061,11 +1079,15 @@ function hitungUmur($tanggal_lahir) {
         // Initial load
         updateCharts();
 
-        // Auto-update every 10 seconds
-        setInterval(updateCharts, UPDATE_INTERVAL);
-
-        console.log('Wearable data monitoring started');
-        console.log(`Update interval: ${UPDATE_INTERVAL/1000} seconds`);
+        // Auto-update every 10 seconds ONLY if on page 1
+        if (currentWPage === 1) {
+            autoRefreshInterval = setInterval(updateCharts, UPDATE_INTERVAL);
+            console.log('Wearable data monitoring started (Auto-refresh ENABLED for Page 1)');
+            console.log(`Update interval: ${UPDATE_INTERVAL/1000} seconds`);
+        } else {
+            console.log('Wearable data monitoring started (Auto-refresh DISABLED - browsing history page ' + currentWPage + ')');
+            console.log('Displaying static data from server-side pagination');
+        }
     </script>
     <?php endif; ?>
 
