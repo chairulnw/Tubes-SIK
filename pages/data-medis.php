@@ -66,27 +66,15 @@ try {
         }
         $stmt->close();
 
-        // Pagination untuk wearable data (shared device untuk seluruh klinik)
-        $wearable_per_page = 5;
-        $wearable_page = isset($_GET['wpage']) ? max(1, intval($_GET['wpage'])) : 1;
-        $wearable_offset = ($wearable_page - 1) * $wearable_per_page;
-
-        // Hitung total wearable data (dari semua pasien - 1 device untuk klinik)
-        $stmt_wcount = $conn->prepare("SELECT COUNT(*) as total FROM wearable_data");
-        $stmt_wcount->execute();
-        $total_wearable = $stmt_wcount->get_result()->fetch_assoc()['total'];
-        $stmt_wcount->close();
-        $wearable_total_pages = ceil($total_wearable / $wearable_per_page);
-
-        // Ambil data wearable dengan pagination (semua data dari device klinik)
+        // Ambil data wearable terbaru (untuk initial load - real-time update via AJAX)
+        // Limit 20 untuk initial display
         $stmt = $conn->prepare("
             SELECT w.*, p.nama as nama_pasien
             FROM wearable_data w
             LEFT JOIN pasien p ON w.no_rm = p.no_rm
             ORDER BY w.waktu_pembacaan DESC
-            LIMIT ? OFFSET ?
+            LIMIT 20
         ");
-        $stmt->bind_param("ii", $wearable_per_page, $wearable_offset);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
@@ -333,57 +321,14 @@ function hitungUmur($tanggal_lahir) {
 
                         <!-- Riwayat Pembacaan -->
                         <div class="wearable-history">
-                            <h3>Riwayat Pembacaan Terbaru</h3>
-
-                            <!-- Pagination untuk Wearable Data (Atas) -->
-                            <?php if ($wearable_total_pages > 1): ?>
-                                <div class="pagination-compact">
-                                    <?php if ($wearable_page > 1): ?>
-                                        <a href="?page=<?php echo $current_page; ?>&wpage=<?php echo $wearable_page - 1; ?>" class="pagination-btn">&laquo;</a>
-                                    <?php else: ?>
-                                        <span class="pagination-btn disabled">&laquo;</span>
-                                    <?php endif; ?>
-
-                                    <?php
-                                    $w_start = max(1, $wearable_page - 2);
-                                    $w_end = min($wearable_total_pages, $wearable_page + 2);
-
-                                    if ($w_start > 1): ?>
-                                        <a href="?page=<?php echo $current_page; ?>&wpage=1" class="pagination-num">1</a>
-                                        <?php if ($w_start > 2): ?>
-                                            <span class="pagination-dots">...</span>
-                                        <?php endif; ?>
-                                    <?php endif; ?>
-
-                                    <?php for ($i = $w_start; $i <= $w_end; $i++): ?>
-                                        <?php if ($i == $wearable_page): ?>
-                                            <span class="pagination-num active"><?php echo $i; ?></span>
-                                        <?php else: ?>
-                                            <a href="?page=<?php echo $current_page; ?>&wpage=<?php echo $i; ?>" class="pagination-num"><?php echo $i; ?></a>
-                                        <?php endif; ?>
-                                    <?php endfor; ?>
-
-                                    <?php if ($w_end < $wearable_total_pages): ?>
-                                        <?php if ($w_end < $wearable_total_pages - 1): ?>
-                                            <span class="pagination-dots">...</span>
-                                        <?php endif; ?>
-                                        <a href="?page=<?php echo $current_page; ?>&wpage=<?php echo $wearable_total_pages; ?>" class="pagination-num"><?php echo $wearable_total_pages; ?></a>
-                                    <?php endif; ?>
-
-                                    <?php if ($wearable_page < $wearable_total_pages): ?>
-                                        <a href="?page=<?php echo $current_page; ?>&wpage=<?php echo $wearable_page + 1; ?>" class="pagination-btn">&raquo;</a>
-                                    <?php else: ?>
-                                        <span class="pagination-btn disabled">&raquo;</span>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endif; ?>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3>Riwayat Pembacaan Terbaru</h3>
+                            </div>
 
                             <table class="history-table">
                                 <thead>
                                     <tr>
                                         <th>Waktu</th>
-                                        <th>No. RM</th>
-                                        <th>Nama Pasien</th>
                                         <th>Detak Jantung</th>
                                         <th>Status</th>
                                     </tr>
@@ -392,8 +337,6 @@ function hitungUmur($tanggal_lahir) {
                                     <?php foreach ($wearable_data as $data): ?>
                                         <tr>
                                             <td><?php echo date('d M Y, H:i', strtotime($data['waktu_pembacaan'])); ?></td>
-                                            <td><strong><?php echo htmlspecialchars($data['no_rm']); ?></strong></td>
-                                            <td><?php echo htmlspecialchars($data['nama_pasien'] ?? 'Unknown'); ?></td>
                                             <td><?php echo htmlspecialchars($data['detak_jantung']); ?> bpm</td>
                                             <td>
                                                 <span class="badge-status badge-<?php echo $data['status']; ?>">
@@ -879,10 +822,6 @@ function hitungUmur($tanggal_lahir) {
         const API_URL = '/Tubes-SIK/api/wearable_latest.php';
         // Removed NO_RM - using shared device for entire clinic
         const UPDATE_INTERVAL = 10000; // 10 seconds
-
-        // Get current wearable page from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentWPage = parseInt(urlParams.get('wpage')) || 1;
         let autoRefreshInterval = null;
 
         // Initialize Charts
@@ -989,18 +928,13 @@ function hitungUmur($tanggal_lahir) {
 
         // Function to update charts (all data from shared device)
         function updateCharts() {
-            // Only auto-refresh if on page 1
-            if (currentWPage !== 1) {
-                console.log('Auto-refresh disabled - browsing history (page ' + currentWPage + ')');
-                return;
-            }
-
             fetch(`${API_URL}?limit=20`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.data.length > 0) {
-                        // Reverse untuk urutan kronologis (oldest to newest)
-                        const dataPoints = data.data.reverse();
+                        // Reverse COPY untuk urutan kronologis grafik (oldest to newest)
+                        // PENTING: Gunakan slice() agar tidak mutate array asli
+                        const dataPoints = data.data.slice().reverse();
 
                         // Extract labels dan values
                         const labels = dataPoints.map(d => {
@@ -1028,10 +962,10 @@ function hitungUmur($tanggal_lahir) {
                         document.querySelector('#lastUpdateHR span').textContent = now;
                         // document.querySelector('#lastUpdateSpO2 span').textContent = now; // Disabled
 
-                        // Update table ONLY if on page 1 (first 5 rows)
-                        updateTable(data.data.slice(0, 5));
+                        // Update table with all data (data.data already in DESC order - newest first)
+                        updateTable(data.data);
 
-                        console.log(`[${now}] Charts updated successfully (Page 1 - Auto-refresh ON)`);
+                        console.log(`[${now}] Charts and table updated successfully (Auto-refresh ON)`);
                     }
                 })
                 .catch(error => {
@@ -1044,7 +978,8 @@ function hitungUmur($tanggal_lahir) {
             const tbody = document.getElementById('wearableTableBody');
             if (!tbody) return;
 
-            tbody.innerHTML = '';
+            // Data from API is in DESC order (newest first), no need to reverse
+            let rowsHTML = '';
             dataPoints.forEach(d => {
                 const date = new Date(d.waktu_pembacaan);
                 const formattedDate = date.toLocaleDateString('id-ID', {
@@ -1057,13 +992,10 @@ function hitungUmur($tanggal_lahir) {
 
                 const statusClass = `badge-${d.status}`;
                 const statusText = d.status.charAt(0).toUpperCase() + d.status.slice(1);
-                const namaPasien = d.nama_pasien || 'Unknown';
 
-                const row = `
+                rowsHTML += `
                     <tr>
                         <td>${formattedDate}</td>
-                        <td><strong>${d.no_rm}</strong></td>
-                        <td>${namaPasien}</td>
                         <td>${d.detak_jantung} bpm</td>
                         <td>
                             <span class="badge-status ${statusClass}">
@@ -1072,45 +1004,32 @@ function hitungUmur($tanggal_lahir) {
                         </td>
                     </tr>
                 `;
-                tbody.innerHTML += row;
             });
+
+            // Set all rows at once (newest data at top)
+            tbody.innerHTML = rowsHTML;
         }
 
         // Initial load
         updateCharts();
 
-        // Auto-update every 10 seconds ONLY if on page 1
-        if (currentWPage === 1) {
-            autoRefreshInterval = setInterval(updateCharts, UPDATE_INTERVAL);
-            console.log('Wearable data monitoring started (Auto-refresh ENABLED for Page 1)');
-            console.log(`Update interval: ${UPDATE_INTERVAL/1000} seconds`);
-        } else {
-            console.log('Wearable data monitoring started (Auto-refresh DISABLED - browsing history page ' + currentWPage + ')');
-            console.log('Displaying static data from server-side pagination');
-        }
+        // Auto-update every 10 seconds
+        autoRefreshInterval = setInterval(updateCharts, UPDATE_INTERVAL);
+        console.log('Wearable data real-time monitoring started');
+        console.log(`Update interval: ${UPDATE_INTERVAL/1000} seconds`);
     </script>
     <?php endif; ?>
 
     <script>
-    // Smooth scroll untuk pagination
+    // Smooth scroll untuk pagination pemeriksaan
     document.addEventListener('DOMContentLoaded', function() {
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const page = urlParams.get('page');
-        const wpage = urlParams.get('wpage');
 
-        // Scroll ke section yang sesuai
+        // Scroll ke riwayat pemeriksaan jika ada parameter page
         if (page) {
-            // Scroll ke riwayat pemeriksaan
             const section = document.querySelector('.medical-history-section');
-            if (section) {
-                setTimeout(() => {
-                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
-            }
-        } else if (wpage) {
-            // Scroll ke wearable data
-            const section = document.querySelector('.wearable-section');
             if (section) {
                 setTimeout(() => {
                     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
